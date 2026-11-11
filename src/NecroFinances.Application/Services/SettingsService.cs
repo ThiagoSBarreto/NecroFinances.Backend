@@ -48,6 +48,8 @@ namespace NecroFinances.Application.Services
                 baseModel.ValorPlanoSaude = 0;
                 baseModel.Outros = 0;
                 baseModel.DesafioGastos = 0;
+                baseModel.Ferias = 0;
+                baseModel.AdiantamentoCartao = 0;
                 baseModel.UserID = userID;
 
                 baseModel = await _repository.SaveSettings(baseModel);
@@ -65,6 +67,8 @@ namespace NecroFinances.Application.Services
             novoModel.ValorPlanoSaude = baseModel.ValorPlanoSaude;
             novoModel.DesafioGastos = baseModel.DesafioGastos;
             novoModel.Outros = baseModel.Outros;
+            novoModel.Ferias = baseModel.Ferias;
+            novoModel.AdiantamentoCartao = baseModel.AdiantamentoCartao;
             novoModel.UserID = userID;
 
             novoModel = await _repository.SaveSettings(novoModel);
@@ -84,6 +88,8 @@ namespace NecroFinances.Application.Services
             model.ValorPlanoSaude = dto.ValorPlanoSaude;
             model.Outros = dto.Outros;
             model.DesafioGastos = dto.DesafioGastos;
+            model.Ferias = dto.Ferias;
+            model.AdiantamentoCartao = dto.AdiantamentoCartao;
 
             model = await _repository.UpdateSettings(model);
             return new SettingsDTO(model);

@@ -41,6 +41,12 @@ namespace NecroFinances.Application.Models
         [Column("DesafioGastos")]
         public double DesafioGastos { get; set; }
 
+        [Column("Ferias", TypeName = "decimal(10,2)")]
+        public decimal Ferias { get; set; }
+
+        [Column("Adiantamento_Cartao", TypeName = "decimal(10,2)")]
+        public decimal AdiantamentoCartao { get; set; }
+
         [Column("UserID")]
         public long UserID { get; set; }
     }

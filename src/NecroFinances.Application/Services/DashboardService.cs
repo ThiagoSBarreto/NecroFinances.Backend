@@ -44,21 +44,23 @@ namespace NecroFinances.Application.Services
             PatrimonioDTO patrimonioMesAtual = await _patrimonioService.GetPatrimonioByDate(inicio, fim, userID);
             PatrimonioDTO patrimonioMesAnterior = await _patrimonioService.GetPatrimonioByDate(inicio.AddMonths(-1), fim.AddMonths(1), userID);
 
-            double totalBrutoMesAtual = (settingsMesAtual.ValorHora * (mesAtual.HorasUteis + mesAtual.HorasExtras));
-            double totalBrutoMesAnterior = (settingsMesAnterior.ValorHora * (mesAnterior.HorasUteis + mesAnterior.HorasExtras));
+            double brutoHorasMesAtual = settingsMesAtual.ValorHora * (mesAtual.HorasUteis + mesAtual.HorasExtras);
+            double brutoHorasMesAnterior = settingsMesAnterior.ValorHora * (mesAnterior.HorasUteis + mesAnterior.HorasExtras);
+            double totalBrutoMesAtual = brutoHorasMesAtual + (double)settingsMesAtual.Ferias;
+            double totalBrutoMesAnterior = brutoHorasMesAnterior + (double)settingsMesAnterior.Ferias;
             double diferencaBruto = totalBrutoMesAtual - totalBrutoMesAnterior;
 
             double inssMesAtual = settingsMesAtual.SalarioMinimo * settingsMesAtual.PercentagemTaxaINSS;
             double inssMesAnterior = settingsMesAnterior.SalarioMinimo * settingsMesAnterior.PercentagemTaxaINSS;
-            double taxaMesAtual = totalBrutoMesAtual * settingsMesAtual.PercentagemTaxaCooperativa;
-            double taxaMesAnterior = totalBrutoMesAnterior * settingsMesAnterior.PercentagemTaxaCooperativa;
+            double taxaMesAtual = brutoHorasMesAtual * settingsMesAtual.PercentagemTaxaCooperativa;
+            double taxaMesAnterior = brutoHorasMesAnterior * settingsMesAnterior.PercentagemTaxaCooperativa;
             double pspdMesAtual = settingsMesAtual.ValorPlanoDental + settingsMesAtual.ValorPlanoSaude;
             double pspdMesAnterior = settingsMesAnterior.ValorPlanoDental + settingsMesAnterior.ValorPlanoSaude;
             double outrosMesAtual = settingsMesAtual.Outros;
             double outrosMesAnterior = settingsMesAnterior.Outros;
 
-            double irpfMesAtual = totalBrutoMesAtual * settingsMesAtual.PercentagemTaxaIRPF;
-            double irpfMesAnterior = totalBrutoMesAnterior * settingsMesAnterior.PercentagemTaxaIRPF;
+            double irpfMesAtual = brutoHorasMesAtual * settingsMesAtual.PercentagemTaxaIRPF;
+            double irpfMesAnterior = brutoHorasMesAnterior * settingsMesAnterior.PercentagemTaxaIRPF;
 
             double totalDescontosMesAtual = inssMesAtual + taxaMesAtual + pspdMesAtual + irpfMesAtual + outrosMesAtual;
             double totalDescontosMesAnterior = inssMesAnterior + taxaMesAnterior + pspdMesAnterior + irpfMesAnterior + outrosMesAnterior;
@@ -133,12 +135,20 @@ namespace NecroFinances.Application.Services
             double totalGastosParceladosMesAnterior = gastosMesAnterior.Where(w => w.TipoGasto == IndicadorTipoGasto.PARCELADO).Sum(s => s.Valor);
             double diferencaGastosParcelados = totalGastosParceladosMesAtual - totalGastosParceladosMesAnterior;
 
-            double totalGastosAvulsosMesAtual = gastosMesAtual.Where(w => w.TipoGasto == IndicadorTipoGasto.AVULSO).Sum(s => s.Valor);
-            double totalGastosAvulsosMesAnterior = gastosMesAnterior.Where(w => w.TipoGasto == IndicadorTipoGasto.AVULSO).Sum(s => s.Valor);
+            double totalGastosAvulsosCartaoMesAtual = gastosMesAtual
+                .Where(w => w.TipoGasto == IndicadorTipoGasto.AVULSO && w.TipoRecurso == IndicadorTipoRecurso.CARTAO)
+                .Sum(s => s.Valor);
+            double totalGastosAvulsosCartaoMesAnterior = gastosMesAnterior
+                .Where(w => w.TipoGasto == IndicadorTipoGasto.AVULSO && w.TipoRecurso == IndicadorTipoRecurso.CARTAO)
+                .Sum(s => s.Valor);
+            double adiantamentoMesAtual = Math.Min((double)settingsMesAtual.AdiantamentoCartao, totalGastosAvulsosCartaoMesAtual);
+            double adiantamentoMesAnterior = Math.Min((double)settingsMesAnterior.AdiantamentoCartao, totalGastosAvulsosCartaoMesAnterior);
+            double totalGastosAvulsosMesAtual = gastosMesAtual.Where(w => w.TipoGasto == IndicadorTipoGasto.AVULSO).Sum(s => s.Valor) - adiantamentoMesAtual;
+            double totalGastosAvulsosMesAnterior = gastosMesAnterior.Where(w => w.TipoGasto == IndicadorTipoGasto.AVULSO).Sum(s => s.Valor) - adiantamentoMesAnterior;
             double diferencaGastosAvulsos = totalGastosAvulsosMesAtual - totalGastosAvulsosMesAnterior;
 
-            double totalGastosMesAtual = gastosMesAtual.Sum(s => s.Valor);
-            double totalGastosMesAnterior = gastosMesAnterior.Sum(s => s.Valor);
+            double totalGastosMesAtual = gastosMesAtual.Sum(s => s.Valor) - adiantamentoMesAtual;
+            double totalGastosMesAnterior = gastosMesAnterior.Sum(s => s.Valor) - adiantamentoMesAnterior;
             double diferencaGastos = totalGastosMesAtual - totalGastosMesAnterior;
 
             double gastoMesAtual = totalGastosParceladosMesAtual + totalGastosAvulsosMesAtual;

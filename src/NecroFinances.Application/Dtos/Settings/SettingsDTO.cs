@@ -20,6 +20,8 @@ namespace NecroFinances.Application.Dtos
         public double ValorPlanoSaude { get; set; }
         public double Outros { get; set; }
         public double DesafioGastos { get; set; }
+        public decimal Ferias { get; set; }
+        public decimal AdiantamentoCartao { get; set; }
 
         public SettingsDTO()
         {
@@ -39,6 +41,8 @@ namespace NecroFinances.Application.Dtos
             this.ValorPlanoSaude = baseSettings.ValorPlanoSaude;
             this.Outros = baseSettings.Outros;
             this.DesafioGastos = baseSettings.DesafioGastos;
+            this.Ferias = baseSettings.Ferias;
+            this.AdiantamentoCartao = baseSettings.AdiantamentoCartao;
         }
 
         public SettingsDTO(SettingsModel model)
@@ -54,6 +58,8 @@ namespace NecroFinances.Application.Dtos
             ValorPlanoSaude = model.ValorPlanoSaude;
             Outros = model.Outros;
             DesafioGastos = model.DesafioGastos;
+            Ferias = model.Ferias;
+            AdiantamentoCartao = model.AdiantamentoCartao;
         }
 
         public List<SettingsDTO> GenerateList(List<SettingsModel> list)
