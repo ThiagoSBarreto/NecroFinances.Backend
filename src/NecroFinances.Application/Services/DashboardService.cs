@@ -64,8 +64,8 @@ namespace NecroFinances.Application.Services
             double totalDescontosMesAnterior = inssMesAnterior + taxaMesAnterior + pspdMesAnterior + irpfMesAnterior + outrosMesAnterior;
             double diferencaDescontos = totalDescontosMesAtual - totalDescontosMesAnterior;
 
-            double totalLiquidoMesAtual = totalBrutoMesAtual - totalDescontosMesAtual;
-            double totalLiquidoMesAnterior = totalBrutoMesAnterior - totalDescontosMesAnterior;
+            double totalLiquidoMesAtual = totalBrutoMesAtual - totalDescontosMesAtual + (double)settingsMesAtual.Ferias;
+            double totalLiquidoMesAnterior = totalBrutoMesAnterior - totalDescontosMesAnterior + (double)settingsMesAnterior.Ferias;
             double diferencaLiquido = totalLiquidoMesAtual - totalLiquidoMesAnterior;
 
             List <PropriedadeDTO> propriedades = new List<PropriedadeDTO>();
@@ -133,12 +133,20 @@ namespace NecroFinances.Application.Services
             double totalGastosParceladosMesAnterior = gastosMesAnterior.Where(w => w.TipoGasto == IndicadorTipoGasto.PARCELADO).Sum(s => s.Valor);
             double diferencaGastosParcelados = totalGastosParceladosMesAtual - totalGastosParceladosMesAnterior;
 
-            double totalGastosAvulsosMesAtual = gastosMesAtual.Where(w => w.TipoGasto == IndicadorTipoGasto.AVULSO).Sum(s => s.Valor);
-            double totalGastosAvulsosMesAnterior = gastosMesAnterior.Where(w => w.TipoGasto == IndicadorTipoGasto.AVULSO).Sum(s => s.Valor);
+            double totalGastosAvulsosCartaoMesAtual = gastosMesAtual
+                .Where(w => w.TipoGasto == IndicadorTipoGasto.AVULSO && w.TipoRecurso == IndicadorTipoRecurso.CARTAO)
+                .Sum(s => s.Valor);
+            double totalGastosAvulsosCartaoMesAnterior = gastosMesAnterior
+                .Where(w => w.TipoGasto == IndicadorTipoGasto.AVULSO && w.TipoRecurso == IndicadorTipoRecurso.CARTAO)
+                .Sum(s => s.Valor);
+            double adiantamentoMesAtual = Math.Min((double)settingsMesAtual.AdiantamentoCartao, totalGastosAvulsosCartaoMesAtual);
+            double adiantamentoMesAnterior = Math.Min((double)settingsMesAnterior.AdiantamentoCartao, totalGastosAvulsosCartaoMesAnterior);
+            double totalGastosAvulsosMesAtual = gastosMesAtual.Where(w => w.TipoGasto == IndicadorTipoGasto.AVULSO).Sum(s => s.Valor) - adiantamentoMesAtual;
+            double totalGastosAvulsosMesAnterior = gastosMesAnterior.Where(w => w.TipoGasto == IndicadorTipoGasto.AVULSO).Sum(s => s.Valor) - adiantamentoMesAnterior;
             double diferencaGastosAvulsos = totalGastosAvulsosMesAtual - totalGastosAvulsosMesAnterior;
 
-            double totalGastosMesAtual = gastosMesAtual.Sum(s => s.Valor);
-            double totalGastosMesAnterior = gastosMesAnterior.Sum(s => s.Valor);
+            double totalGastosMesAtual = gastosMesAtual.Sum(s => s.Valor) - adiantamentoMesAtual;
+            double totalGastosMesAnterior = gastosMesAnterior.Sum(s => s.Valor) - adiantamentoMesAnterior;
             double diferencaGastos = totalGastosMesAtual - totalGastosMesAnterior;
 
             double gastoMesAtual = totalGastosParceladosMesAtual + totalGastosAvulsosMesAtual;
