@@ -73,5 +73,11 @@ namespace NecroFinances.Infrastructure.Repositories
             _context.Entry(user).State = EntityState.Modified;
             return user;
         }
+
+        public void SaveHideValues(UserModel user)
+        {
+            _context.Entry(user).Property(current => current.HideValues).IsModified = true;
+            _context.SaveChanges();
+        }
     }
 }

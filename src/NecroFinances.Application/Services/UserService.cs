@@ -51,5 +51,37 @@ namespace NecroFinances.Application.Services
             return result == PasswordVerificationResult.Success ? user : null;
         }
 
+        public bool? GetHideValues(long userId)
+        {
+            return _repositorie.GetUserById(userId)?.HideValues;
+        }
+
+        public bool SetHideValues(long userId, bool hideValues, string? password)
+        {
+            var user = _repositorie.GetUserById(userId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            if (!hideValues)
+            {
+                if (string.IsNullOrEmpty(password))
+                {
+                    return false;
+                }
+
+                var result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
+                if (result == PasswordVerificationResult.Failed)
+                {
+                    return false;
+                }
+            }
+
+            user.HideValues = hideValues;
+            _repositorie.SaveHideValues(user);
+            return true;
+        }
+
     }
 }

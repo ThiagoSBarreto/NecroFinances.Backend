@@ -9,5 +9,7 @@ namespace NecroFinances.Application.Interfaces
     {
         Task<UserModel> RegisterAsync(UserDTO userDTO);
         Task<UserModel> AuthenticateAsync(UserDTO userDTO);
+        bool? GetHideValues(long userId);
+        bool SetHideValues(long userId, bool hideValues, string? password);
     }
 }

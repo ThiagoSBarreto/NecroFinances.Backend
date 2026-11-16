@@ -15,5 +15,6 @@ namespace NecroFinances.Application.Interfaces.Repositories
         void RemoveRefreshToken(string tokenHash);
         UserModel? GetUserById(long userID);
         UserModel UpdateUser(UserModel user);
+        void SaveHideValues(UserModel user);
     }
 }
