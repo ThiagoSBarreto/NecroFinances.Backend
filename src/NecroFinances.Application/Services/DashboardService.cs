@@ -52,8 +52,8 @@ namespace NecroFinances.Application.Services
 
             double inssMesAtual = settingsMesAtual.SalarioMinimo * settingsMesAtual.PercentagemTaxaINSS;
             double inssMesAnterior = settingsMesAnterior.SalarioMinimo * settingsMesAnterior.PercentagemTaxaINSS;
-            double taxaMesAtual = brutoHorasMesAtual * settingsMesAtual.PercentagemTaxaCooperativa;
-            double taxaMesAnterior = brutoHorasMesAnterior * settingsMesAnterior.PercentagemTaxaCooperativa;
+            double taxaMesAtual = totalBrutoMesAtual * settingsMesAtual.PercentagemTaxaCooperativa;
+            double taxaMesAnterior = totalBrutoMesAnterior * settingsMesAnterior.PercentagemTaxaCooperativa;
             double pspdMesAtual = settingsMesAtual.ValorPlanoDental + settingsMesAtual.ValorPlanoSaude;
             double pspdMesAnterior = settingsMesAnterior.ValorPlanoDental + settingsMesAnterior.ValorPlanoSaude;
             double outrosMesAtual = settingsMesAtual.Outros;
