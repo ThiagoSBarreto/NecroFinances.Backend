@@ -24,5 +24,8 @@ namespace NecroFinances.Application.Models
 
         [Column("RefreshTokenExpiryTime")]
         public DateTime? RefreshTokenExpiryTime { get; set; }
+
+        [Column("HideValues")]
+        public bool HideValues { get; set; }
     }
 }

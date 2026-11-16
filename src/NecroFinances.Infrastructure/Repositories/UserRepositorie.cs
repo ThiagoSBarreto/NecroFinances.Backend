@@ -27,28 +27,43 @@ namespace NecroFinances.Infrastructure.Repositories
             return await _context.Usuarios.FirstOrDefaultAsync(f => f.Username == username);
         }
 
-        public void UpdateRefreshToken(long userID, string refreshToken)
+        public void AddRefreshToken(RefreshTokenModel refreshToken)
         {
-            UserModel user = _context.Usuarios.FirstOrDefault(f => f.ID == userID);
-
-            if (user == null)
-            {
-                throw new Exception("Usuario não existe");
-            }
-
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMonths(1);
-
-            _context.Entry(user).State = EntityState.Modified;
+            _context.RefreshTokens.Add(refreshToken);
             _context.SaveChanges();
         }
 
-        public UserModel GetByUserIdAndRefreshToken(string refreshToken)
+        public RefreshTokenModel? GetRefreshTokenByHash(string tokenHash)
         {
-            return _context.Usuarios.Where(w => w.RefreshToken == refreshToken).FirstOrDefault();
+            return _context.RefreshTokens.FirstOrDefault(token => token.TokenHash == tokenHash);
         }
 
-        public UserModel GetUserById(long id)
+        public void UpdateRefreshToken(long id, string tokenHash, DateTime expiresAt)
+        {
+            var refreshToken = _context.RefreshTokens.FirstOrDefault(token => token.Id == id);
+            if (refreshToken == null)
+            {
+                throw new InvalidOperationException("Sessão de refresh não encontrada.");
+            }
+
+            refreshToken.TokenHash = tokenHash;
+            refreshToken.ExpiresAt = expiresAt;
+            _context.SaveChanges();
+        }
+
+        public void RemoveRefreshToken(string tokenHash)
+        {
+            var refreshToken = _context.RefreshTokens.FirstOrDefault(token => token.TokenHash == tokenHash);
+            if (refreshToken == null)
+            {
+                return;
+            }
+
+            _context.RefreshTokens.Remove(refreshToken);
+            _context.SaveChanges();
+        }
+
+        public UserModel? GetUserById(long id)
         {
             return _context.Usuarios.FirstOrDefault(f => f.ID == id);
         }
@@ -57,6 +72,12 @@ namespace NecroFinances.Infrastructure.Repositories
         {
             _context.Entry(user).State = EntityState.Modified;
             return user;
+        }
+
+        public void SaveHideValues(UserModel user)
+        {
+            _context.Entry(user).Property(current => current.HideValues).IsModified = true;
+            _context.SaveChanges();
         }
     }
 }

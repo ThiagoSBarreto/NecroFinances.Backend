@@ -28,6 +28,15 @@ namespace NecroFinances.Application.Services
 
         public TokenResponse GenerateToken(UserModel user)
         {
+            return new TokenResponse
+            {
+                AccessToken = GenerateAccessToken(user),
+                RefreshToken = GenerateRefreshToken(user)
+            };
+        }
+
+        private string GenerateAccessToken(UserModel user)
+        {
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.ID.ToString()),
@@ -45,40 +54,74 @@ namespace NecroFinances.Application.Services
                 expires: DateTime.UtcNow.AddMinutes(_jwt.AccessTokenExpirationTimeMinutes),
                 signingCredentials: creds);
 
-            return new TokenResponse
-            {
-                AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
-                RefreshToken = GenerateRefreshToken(user)
-            };
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         public string GenerateRefreshToken(UserModel user)
         {
-            var randomNumber = new byte[64];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(randomNumber);
-            var refreshToken = Convert.ToBase64String(randomNumber);
-            _userRepositorie.UpdateRefreshToken(user.ID, refreshToken);
+            var refreshToken = CreateRefreshToken();
+            _userRepositorie.AddRefreshToken(new RefreshTokenModel
+            {
+                UserID = user.ID,
+                TokenHash = HashRefreshToken(refreshToken),
+                ExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenExpirationTimeDays)
+            });
 
             return refreshToken;
         }
 
         public TokenResponse RefreshToken(string refreshToken)
         {
-            UserModel user = _userRepositorie.GetByUserIdAndRefreshToken(refreshToken);
-
-
-            if (user == null)
+            var tokenHash = HashRefreshToken(refreshToken);
+            var refreshTokenSession = _userRepositorie.GetRefreshTokenByHash(tokenHash);
+            if (refreshTokenSession == null)
             {
                 throw new UnauthorizedAccessException("Sessão inválida.");
             }
 
-            if (user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            if (refreshTokenSession.ExpiresAt <= DateTime.UtcNow)
             {
+                _userRepositorie.RemoveRefreshToken(tokenHash);
                 throw new UnauthorizedAccessException("Sessão expirada, por favor, faça o Login novamente.");
             }
 
-            return GenerateToken(user);
+            var user = _userRepositorie.GetUserById(refreshTokenSession.UserID);
+            if (user == null)
+            {
+                _userRepositorie.RemoveRefreshToken(tokenHash);
+                throw new UnauthorizedAccessException("Sessão inválida.");
+            }
+
+            var nextRefreshToken = CreateRefreshToken();
+            _userRepositorie.UpdateRefreshToken(
+                refreshTokenSession.Id,
+                HashRefreshToken(nextRefreshToken),
+                DateTime.UtcNow.AddDays(_jwt.RefreshTokenExpirationTimeDays));
+
+            return new TokenResponse
+            {
+                AccessToken = GenerateAccessToken(user),
+                RefreshToken = nextRefreshToken
+            };
+        }
+
+        public void RevokeRefreshToken(string refreshToken)
+        {
+            _userRepositorie.RemoveRefreshToken(HashRefreshToken(refreshToken));
+        }
+
+        private static string CreateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+
+        private static string HashRefreshToken(string refreshToken)
+        {
+            var hash = SHA256.HashData(Encoding.UTF8.GetBytes(refreshToken));
+            return Convert.ToHexString(hash).ToLowerInvariant();
         }
     }
 }

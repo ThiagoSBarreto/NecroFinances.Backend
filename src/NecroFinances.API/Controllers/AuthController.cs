@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using NecroFinances.Application.Interfaces;
 using NecroFinances.Application.Models;
+using System.Security.Claims;
 
 namespace NecroFinances.API.Controllers
 {
@@ -56,12 +57,51 @@ namespace NecroFinances.API.Controllers
             return Ok(_tokenService.RefreshToken(token.RefreshToken));
         }
 
-        [Authorize]
-        [HttpGet("logout")]
-        public IActionResult Logout(long userID)
+        [HttpPost("logout")]
+        public IActionResult Logout([FromBody] RefreshTokenRequest request)
         {
-            _userService.Logout(userID);
-            return Ok();
+            _tokenService.RevokeRefreshToken(request.RefreshToken);
+            return NoContent();
+        }
+
+        [Authorize]
+        [HttpGet("valueVisibility")]
+        public IActionResult GetValueVisibility()
+        {
+            if (!TryGetUserId(out var userId))
+            {
+                return Unauthorized("Você não tem permissão para acessar este serviço.");
+            }
+
+            var hideValues = _userService.GetHideValues(userId);
+            if (!hideValues.HasValue)
+            {
+                return NotFound("Usuário não encontrado.");
+            }
+
+            return Ok(new { hideValues = hideValues.Value });
+        }
+
+        [Authorize]
+        [HttpPut("valueVisibility")]
+        public IActionResult UpdateValueVisibility([FromBody] UpdateValueVisibilityRequest request)
+        {
+            if (!TryGetUserId(out var userId))
+            {
+                return Unauthorized("Você não tem permissão para acessar este serviço.");
+            }
+
+            if (!_userService.SetHideValues(userId, request.HideValues, request.Password))
+            {
+                return Unauthorized("Senha inválida.");
+            }
+
+            return Ok(new { hideValues = request.HideValues });
+        }
+
+        private bool TryGetUserId(out long userId)
+        {
+            return long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out userId);
         }
     }
 }
