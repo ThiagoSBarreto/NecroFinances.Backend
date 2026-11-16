@@ -7,5 +7,6 @@ namespace NecroFinances.Application.Interfaces
         TokenResponse GenerateToken(UserModel user);
         string GenerateRefreshToken(UserModel user);
         TokenResponse RefreshToken(string refreshToken);
+        void RevokeRefreshToken(string refreshToken);
     }
 }

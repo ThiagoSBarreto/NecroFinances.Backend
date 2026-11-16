@@ -9,9 +9,11 @@ namespace NecroFinances.Application.Interfaces.Repositories
     {
         Task<UserModel> IsRegisteredAsync(string username);
         Task<UserModel> AddNewUser(UserModel user);
-        void UpdateRefreshToken(long userID, string refreshToken);
-        UserModel GetByUserIdAndRefreshToken(string refreshToken);
-        UserModel GetUserById(long userID);
+        void AddRefreshToken(RefreshTokenModel refreshToken);
+        RefreshTokenModel? GetRefreshTokenByHash(string tokenHash);
+        void UpdateRefreshToken(long id, string tokenHash, DateTime expiresAt);
+        void RemoveRefreshToken(string tokenHash);
+        UserModel? GetUserById(long userID);
         UserModel UpdateUser(UserModel user);
     }
 }

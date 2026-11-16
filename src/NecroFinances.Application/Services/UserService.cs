@@ -51,16 +51,5 @@ namespace NecroFinances.Application.Services
             return result == PasswordVerificationResult.Success ? user : null;
         }
 
-        public void Logout(long userID)
-        {
-            UserModel user = _repositorie.GetUserById(userID);
-            if (user == null)
-            {
-                return;
-            }
-
-            user.RefreshTokenExpiryTime = DateTime.UtcNow;
-            _repositorie.UpdateUser(user);
-        }
     }
 }

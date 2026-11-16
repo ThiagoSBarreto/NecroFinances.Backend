@@ -15,6 +15,17 @@ namespace NecroFinances.Infrastructure.Persistence
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+            modelBuilder.Entity<RefreshTokenModel>()
+                .HasIndex(refreshToken => refreshToken.TokenHash)
+                .IsUnique();
+            modelBuilder.Entity<RefreshTokenModel>()
+                .HasIndex(refreshToken => refreshToken.UserID);
+            modelBuilder.Entity<RefreshTokenModel>()
+                .HasOne<UserModel>()
+                .WithMany()
+                .HasForeignKey(refreshToken => refreshToken.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         public DbSet<SettingsModel> Settings { get; set; }
@@ -25,5 +36,6 @@ namespace NecroFinances.Infrastructure.Persistence
         public DbSet<InvestimentoModel> Investimentos { get; set; }
         public DbSet<FinanciamentoModel> Financiamentos { get; set; }
         public DbSet<UserModel> Usuarios { get; set; }
+        public DbSet<RefreshTokenModel> RefreshTokens { get; set; }
     }
 }

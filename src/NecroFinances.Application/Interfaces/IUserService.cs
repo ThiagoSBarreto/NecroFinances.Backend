@@ -9,6 +9,5 @@ namespace NecroFinances.Application.Interfaces
     {
         Task<UserModel> RegisterAsync(UserDTO userDTO);
         Task<UserModel> AuthenticateAsync(UserDTO userDTO);
-        void Logout(long userID);
     }
 }

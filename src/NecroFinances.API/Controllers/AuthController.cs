@@ -56,12 +56,11 @@ namespace NecroFinances.API.Controllers
             return Ok(_tokenService.RefreshToken(token.RefreshToken));
         }
 
-        [Authorize]
-        [HttpGet("logout")]
-        public IActionResult Logout(long userID)
+        [HttpPost("logout")]
+        public IActionResult Logout([FromBody] RefreshTokenRequest request)
         {
-            _userService.Logout(userID);
-            return Ok();
+            _tokenService.RevokeRefreshToken(request.RefreshToken);
+            return NoContent();
         }
     }
 }
